@@ -5,7 +5,7 @@
   "repository": "git@github.com:rude-guy/mini-vue.git",
   "author": "yangyanbo <yangyanbo@fuzhi.ai>",
   "scripts": {
-    "jest": "jest"
+    "test": "jest"
   },
   "license": "MIT",
   "dependencies": {
