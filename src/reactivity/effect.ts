@@ -61,7 +61,10 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep);
   }
+  trackEffects(dep);
+}
 
+export function trackEffects(dep) {
   if (dep.has(activeEffect)) return;
 
   dep.add(activeEffect);
@@ -75,7 +78,10 @@ export function isTracking() {
 export function trigger(target, key) {
   const depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
+  triggerEffects(dep);
+}
 
+export function triggerEffects(dep) {
   for (const _effect of dep) {
     if (_effect.scheduler) {
       _effect.scheduler();
