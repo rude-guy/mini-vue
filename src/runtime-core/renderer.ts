@@ -1,4 +1,5 @@
-import { isObject } from '../reactivity/shared';
+import { isObject } from '../shared';
+import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 
 export function render(vnode, container) {
@@ -6,9 +7,9 @@ export function render(vnode, container) {
 }
 
 function patch(vnode: any, container: any) {
-  if (typeof vnode.type === 'string') {
+  if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
     processElement(vnode, container);
-  } else if (isObject(vnode.type)) {
+  } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     // 处理component
     processComponent(vnode, container);
   }
@@ -24,9 +25,9 @@ function mountElement(vnode: any, container: any) {
   const { props, children } = vnode;
 
   // string array
-  if (typeof children === 'string') {
+  if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     mountChildren(vnode, el);
   }
 
