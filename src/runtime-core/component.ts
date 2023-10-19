@@ -19,11 +19,11 @@ export function setupComponent(instance) {
 }
 
 function setupStatefulComponent(instance: any) {
-  const Componet = instance.type;
+  const Component = instance.type;
 
   instance.proxy = new Proxy({ _: instance }, publicInstanceProxyHandlers);
 
-  const { setup } = Componet;
+  const { setup } = Component;
   if (setup) {
     const setupResult = setup();
 
@@ -43,9 +43,9 @@ function handleSetupResult(instance: any, setupResult: any) {
 }
 
 function finishComponentSetup(instance: any) {
-  const Componet = instance.type;
+  const Component = instance.type;
 
-  if (Componet.render) {
-    instance.render = Componet.render;
+  if (Component.render) {
+    instance.render = Component.render;
   }
 }
