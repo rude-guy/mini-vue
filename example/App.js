@@ -11,14 +11,27 @@ export const App = {
       {
         id: 'root',
         class: 'container',
-        onClick: () => {
-          console.log('click');
-        },
-        onMousedown: () => {
-          console.log('mouseDown');
-        },
+        // onClick: () => {
+        //   console.log('click');
+        // },
+        // onMousedown: () => {
+        //   console.log('mouseDown');
+        // },
       },
-      ['hi ' + this.msg, h('p', { class: 'red' }, 'hello world'), h(Foo, { class: 'blue', count: 1 })]
+      [
+        'hi ' + this.msg,
+        h('p', { class: 'red' }, 'hello world'),
+        h(Foo, {
+          class: 'blue',
+          count: 1,
+          onAdd: (a, b) => {
+            console.log('add', a, b);
+          },
+          onAddFoo: (a, b) => {
+            console.log('addFoo', a, b);
+          },
+        }),
+      ]
     );
   },
   setup() {
