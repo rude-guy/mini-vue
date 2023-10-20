@@ -1,4 +1,5 @@
 import { effect } from '../reactivity';
+import { EMPTY_OBJ } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
@@ -51,8 +52,32 @@ export function createRenderer(options) {
     console.log('prevnode', n1);
     console.log('nextnode', n2);
 
+    const el = (n2.el = n1.el);
     // props
+    const oldProps = n1.props || EMPTY_OBJ;
+    const newProps = n2.props || EMPTY_OBJ;
+    patchProps(el, oldProps, newProps);
     // children
+  }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      for (const key in newProps) {
+        const prevProps = oldProps[key];
+        const nextProps = newProps[key];
+        if (prevProps !== nextProps) {
+          hostPatchProps(el, key, prevProps, nextProps);
+        }
+      }
+    }
+
+    if (oldProps !== EMPTY_OBJ) {
+      for (const key in oldProps) {
+        if (!(key in newProps)) {
+          hostPatchProps(el, key, oldProps[key], null);
+        }
+      }
+    }
   }
 
   function mountElement(vnode: any, container: any, parentComponent: any) {
@@ -70,7 +95,7 @@ export function createRenderer(options) {
     // props
     for (const key in props) {
       const val = props[key];
-      hostPatchProps(el, key, val);
+      hostPatchProps(el, key, null, val);
     }
 
     hostInsert(el, container);
