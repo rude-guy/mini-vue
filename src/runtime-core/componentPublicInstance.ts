@@ -1,3 +1,4 @@
+import { proxyRefs } from '../reactivity';
 import { hasOwn } from '../shared';
 
 const publicPropertiesMap = {
