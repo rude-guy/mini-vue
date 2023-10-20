@@ -19,7 +19,7 @@ function patchProps(el, key, val) {
 }
 
 function insert(el, parent) {
-  parent.appendChild(el);
+  parent.append(el);
 }
 
 const renderer: any = createRenderer({

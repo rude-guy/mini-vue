@@ -4,7 +4,7 @@ import { createAppAPI } from './createApp';
 import { Fragment, Text } from './vnode';
 
 export function createRenderer(options) {
-  const { createElement, createText, patchProps, insert } = options;
+  const { createElement: hostCreateElement, createText: hostCreateText, patchProps: hostPatchProps, insert: hostInsert } = options;
 
   function render(vnode, container) {
     patch(vnode, container, null);
@@ -30,8 +30,8 @@ export function createRenderer(options) {
   }
 
   function processText(vnode: any, container: any) {
-    const el = (vnode.el = createText(vnode.children));
-    insert(el, container);
+    const el = (vnode.el = hostCreateText(vnode.children));
+    hostInsert(el, container);
   }
 
   function processFragment(vnode: any, container: any, parentComponent: any) {
@@ -43,7 +43,7 @@ export function createRenderer(options) {
   }
 
   function mountElement(vnode: any, container: any, parentComponent: any) {
-    const el = (vnode.el = createElement(vnode.type));
+    const el = (vnode.el = hostCreateElement(vnode.type));
 
     const { props, children } = vnode;
 
@@ -57,10 +57,10 @@ export function createRenderer(options) {
     // props
     for (const key in props) {
       const val = props[key];
-      patchProps(el, key, val);
+      hostPatchProps(el, key, val);
     }
 
-    insert(el, container);
+    hostInsert(el, container);
   }
 
   function mountChildren(vnode, container, parentComponent) {
