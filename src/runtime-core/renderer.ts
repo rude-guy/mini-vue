@@ -3,23 +3,23 @@ import { createComponentInstance, setupComponent } from './component';
 import { Fragment, Text } from './vnode';
 
 export function render(vnode, container) {
-  patch(vnode, container);
+  patch(vnode, container, null);
 }
 
-function patch(vnode: any, container: any) {
+function patch(vnode: any, container: any, parentComponent: any) {
   switch (vnode.type) {
     case Fragment:
-      processFragment(vnode, container);
+      processFragment(vnode, container, parentComponent);
       break;
     case Text:
       processText(vnode, container);
       break;
     default:
       if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
-        processElement(vnode, container);
+        processElement(vnode, container, parentComponent);
       } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
         // 处理component
-        processComponent(vnode, container);
+        processComponent(vnode, container, parentComponent);
       }
       break;
   }
@@ -30,15 +30,15 @@ function processText(vnode: any, container: any) {
   container.append(el);
 }
 
-function processFragment(vnode: any, container: any) {
-  mountChildren(vnode, container);
+function processFragment(vnode: any, container: any, parentComponent: any) {
+  mountChildren(vnode, container, parentComponent);
 }
 
-function processElement(vnode: any, container: any) {
-  mountElement(vnode, container);
+function processElement(vnode: any, container: any, parentComponent: any) {
+  mountElement(vnode, container, parentComponent);
 }
 
-function mountElement(vnode: any, container: any) {
+function mountElement(vnode: any, container: any, parentComponent: any) {
   const el = (vnode.el = document.createElement(vnode.type));
 
   const { props, children } = vnode;
@@ -47,7 +47,7 @@ function mountElement(vnode: any, container: any) {
   if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-    mountChildren(vnode, el);
+    mountChildren(vnode, el, parentComponent);
   }
 
   // props
@@ -65,19 +65,19 @@ function mountElement(vnode: any, container: any) {
   container.appendChild(el);
 }
 
-function mountChildren(vnode, container) {
+function mountChildren(vnode, container, parentComponent) {
   const { children } = vnode;
   children.forEach((v) => {
-    patch(v, container);
+    patch(v, container, parentComponent);
   });
 }
 
-function processComponent(vnode: any, container: any) {
-  mountComponent(vnode, container);
+function processComponent(vnode: any, container: any, parentComponent: any) {
+  mountComponent(vnode, container, parentComponent);
 }
 
-function mountComponent(initinalVnode: any, container: any) {
-  const instance = createComponentInstance(initinalVnode);
+function mountComponent(initinalVnode: any, container: any, parentComponent: any) {
+  const instance = createComponentInstance(initinalVnode, parentComponent);
   setupComponent(instance);
   setupRenderEffect(instance, initinalVnode, container);
 }
@@ -88,7 +88,7 @@ function setupRenderEffect(instance: any, initinalVnode: any, container: any) {
 
   // vnode -> patch
 
-  patch(subTree, container);
+  patch(subTree, container, instance);
 
   initinalVnode.el = subTree.el;
 }
