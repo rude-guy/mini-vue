@@ -1,18 +1,12 @@
-import { h, renderSlots, createTextVnode } from '../lib/guide-mini-vue-esm.js';
+import { h, getCurrentInstance } from '../lib/guide-mini-vue-esm.js';
 
 export const Foo = {
   name: 'Foo',
-  setup(props) {},
+  setup() {
+    const app = getCurrentInstance();
+    console.log('app', app);
+  },
   render() {
-    const foo = h('p', {}, 'Foo');
-    console.log(this.$slots);
-    return h('div', {}, [
-      renderSlots(this.$slots, 'header', {
-        age: 10,
-      }),
-      createTextVnode('我是谁'),
-      foo,
-      renderSlots(this.$slots, 'footer'),
-    ]);
+    return h('p', {}, 'Foo');
   },
 };

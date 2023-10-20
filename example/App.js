@@ -1,22 +1,15 @@
-import { h } from '../lib/guide-mini-vue-esm.js';
+import { h, getCurrentInstance } from '../lib/guide-mini-vue-esm.js';
 import { Foo } from './Foo.js';
 
 export const App = {
   name: 'App',
   render() {
-    const app = h('div', {}, 'App');
-    const foo = h(
-      Foo,
-      {},
-      {
-        header: ({ age }) => h('p', {}, 'header' + age),
-        footer: () => h('p', {}, 'footer'),
-      }
-    );
+    const app = h('div', {}, [h('div', {}, 'currentInstance dome'), h(Foo)]);
 
-    return h('div', {}, [app, foo]);
+    return h('div', {}, [app]);
   },
   setup() {
-    return {};
+    const app = getCurrentInstance();
+    console.log('app', app);
   },
 };
