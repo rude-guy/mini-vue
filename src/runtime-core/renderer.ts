@@ -80,9 +80,6 @@ export function createRenderer(options) {
     parentComponent,
     anchor
   ) {
-    console.log('prevnode', n1);
-    console.log('nextnode', n2);
-
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
 
@@ -188,13 +185,19 @@ export function createRenderer(options) {
       let s1 = i;
       let s2 = i;
 
-      const toBePatched = e2 - s2 + 1;
-      let patched = 0;
       const keyToNewIndexMap = new Map();
       for (let i = s2; i <= e2; i++) {
         const nextChild = c2[i];
         keyToNewIndexMap.set(nextChild.key, i);
       }
+
+      let patched = 0;
+      const toBePatched = e2 - s2 + 1;
+      let move = false;
+      let maxNewIndexSoFar = 0;
+
+      const newIndexToOldIndexMap = new Array(toBePatched);
+      for (i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0;
 
       for (let i = s1; i <= e1; i++) {
         const prevChild = c1[i];
@@ -220,6 +223,12 @@ export function createRenderer(options) {
         if (nextIndex === undefined) {
           hostRemove(prevChild.el);
         } else {
+          newIndexToOldIndexMap[nextIndex - s2] = i + 1;
+          if (nextIndex >= maxNewIndexSoFar) {
+            maxNewIndexSoFar = nextIndex;
+          } else {
+            move = true;
+          }
           patch(
             prevChild,
             c2[nextIndex],
@@ -230,11 +239,28 @@ export function createRenderer(options) {
           patched++;
         }
       }
-    }
 
-    console.log('i:', i);
-    console.log('e1:', e1);
-    console.log('e2:', e2);
+      const increasingNewIndexSequence = move
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
+
+      let j = increasingNewIndexSequence.length - 1;
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = s2 + i;
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : parentAnchor;
+
+        if (newIndexToOldIndexMap[i] === 0) {
+          patch(null, nextChild, container, parentComponent, anchor);
+        } else if (move) {
+          if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
+        }
+      }
+    }
   }
 
   function unmountChildren(children) {
@@ -351,4 +377,45 @@ export function createRenderer(options) {
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function getSequence(arr: number[]): number[] {
+  const p = arr.slice();
+  const result = [0];
+  let i, j, u, v, c;
+  const len = arr.length;
+  for (i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
+    }
+  }
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+  return result;
 }
