@@ -4,6 +4,7 @@ import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { shouldUpdateComponent } from './componentShouldUtils';
 import { createAppAPI } from './createApp';
+import { queueJob } from './scheduler';
 import { Fragment, Text } from './vnode';
 
 export function createRenderer(options) {
@@ -368,34 +369,42 @@ export function createRenderer(options) {
     container: any,
     anchor: any
   ) {
-    instance.update = effect(() => {
-      if (!instance.isMounted) {
-        const { proxy } = instance;
-        const subTree = (instance.subTree = instance.render.call(proxy));
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          const { proxy } = instance;
+          const subTree = (instance.subTree = instance.render.call(proxy));
 
-        // vnode -> patch
+          // vnode -> patch
 
-        patch(null, subTree, container, instance, anchor);
+          patch(null, subTree, container, instance, anchor);
 
-        initinalVnode.el = subTree.el;
+          initinalVnode.el = subTree.el;
 
-        instance.isMounted = true;
-      } else {
-        const { next, vnode } = instance;
-        if (next) {
-          next.el = vnode.el;
-          updateComponentPreRender(instance, next);
+          instance.isMounted = true;
+        } else {
+          const { next, vnode } = instance;
+          if (next) {
+            next.el = vnode.el;
+            updateComponentPreRender(instance, next);
+          }
+          const { proxy } = instance;
+
+          const subTree = instance.render.call(proxy);
+          const prevTree = instance.subTree;
+
+          instance.subTree = subTree;
+
+          patch(prevTree, subTree, container, instance, anchor);
         }
-        const { proxy } = instance;
-
-        const subTree = instance.render.call(proxy);
-        const prevTree = instance.subTree;
-
-        instance.subTree = subTree;
-
-        patch(prevTree, subTree, container, instance, anchor);
+      },
+      {
+        scheduler() {
+          console.log('scheduler --- update');
+          queueJob(instance.update);
+        },
       }
-    });
+    );
   }
 
   function updateComponentPreRender(instance, nextVnode) {

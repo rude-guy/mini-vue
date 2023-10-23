@@ -33,13 +33,13 @@ export class ReactiveEffect {
       if (this.onStop) {
         this.onStop();
       }
-      clearnupEffect(this);
+      cleanupEffect(this);
       this.active = false;
     }
   }
 }
 
-function clearnupEffect(effect) {
+function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect);
   });
