@@ -14,11 +14,11 @@ export const App = {
       // 老的是数组，新的是文本
       // h(ArrayToText),
       // 老的是文本，新的是数组
-      h(TextToArray),
+      // h(TextToArray),
       // 老的是文本，新的是文本
       // h(TextToText),
       // 老的是数组，新的是数组
-      // h(ArrayToArray),
+      h(ArrayToArray),
     ]);
   },
 };
