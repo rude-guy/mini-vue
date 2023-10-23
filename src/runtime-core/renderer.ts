@@ -176,10 +176,59 @@ export function createRenderer(options) {
           i++;
         }
       }
-    } else if (i > e2) {
+    }
+    // 旧的比新的多，需要卸载
+    else if (i > e2) {
       while (i <= e1) {
         hostRemove(c1[i].el);
         i++;
+      }
+    } else {
+      // 中间对比
+      let s1 = i;
+      let s2 = i;
+
+      const toBePatched = e2 - s2 + 1;
+      let patched = 0;
+      const keyToNewIndexMap = new Map();
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i];
+        keyToNewIndexMap.set(nextChild.key, i);
+      }
+
+      for (let i = s1; i <= e1; i++) {
+        const prevChild = c1[i];
+
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el);
+          continue;
+        }
+
+        let nextIndex;
+        if (prevChild.key != null) {
+          nextIndex = keyToNewIndexMap.get(prevChild.key);
+        } else {
+          for (let j = s2; j <= e2; j++) {
+            const nextChild = c2[j];
+            if (isSameVNodeType(prevChild, nextChild)) {
+              nextIndex = j;
+              break;
+            }
+          }
+        }
+
+        if (nextIndex === undefined) {
+          hostRemove(prevChild.el);
+        } else {
+          patch(
+            prevChild,
+            c2[nextIndex],
+            container,
+            parentComponent,
+            parentAnchor
+          );
+          patched++;
+        }
       }
     }
 
