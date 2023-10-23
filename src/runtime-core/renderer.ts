@@ -2,6 +2,7 @@ import { effect } from '../reactivity';
 import { EMPTY_OBJ } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
+import { shouldUpdateComponent } from './componentShouldUtils';
 import { createAppAPI } from './createApp';
 import { Fragment, Text } from './vnode';
 
@@ -329,7 +330,22 @@ export function createRenderer(options) {
     parentComponent: any,
     anchor: any
   ) {
-    mountComponent(n2, container, parentComponent, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      updateComponent(n1, n2, container);
+    }
+  }
+
+  function updateComponent(n1, n2, container) {
+    const instance = (n2.component = n1.component);
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      n2.el = n1.el;
+      instance.vnode = n2;
+    }
   }
 
   function mountComponent(
@@ -338,7 +354,10 @@ export function createRenderer(options) {
     parentComponent: any,
     anchor
   ) {
-    const instance = createComponentInstance(initinalVnode, parentComponent);
+    const instance = (initinalVnode.component = createComponentInstance(
+      initinalVnode,
+      parentComponent
+    ));
     setupComponent(instance);
     setupRenderEffect(instance, initinalVnode, container, anchor);
   }
@@ -349,7 +368,7 @@ export function createRenderer(options) {
     container: any,
     anchor: any
   ) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         const { proxy } = instance;
         const subTree = (instance.subTree = instance.render.call(proxy));
@@ -362,6 +381,11 @@ export function createRenderer(options) {
 
         instance.isMounted = true;
       } else {
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
         const { proxy } = instance;
 
         const subTree = instance.render.call(proxy);
@@ -372,6 +396,12 @@ export function createRenderer(options) {
         patch(prevTree, subTree, container, instance, anchor);
       }
     });
+  }
+
+  function updateComponentPreRender(instance, nextVnode) {
+    instance.vnode = nextVnode;
+    instance.next = null;
+    instance.props = nextVnode.props;
   }
 
   return {

@@ -7,6 +7,7 @@ export function createVnode(type, props?, children?) {
   const vnode = {
     type,
     props: props || {},
+    component: null,
     key: props?.key,
     children,
     shapeFlag: getShapeFlag(type),
