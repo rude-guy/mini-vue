@@ -1,5 +1,10 @@
 import { NodeTypes } from './act';
 
+enum TagType {
+  START,
+  END,
+}
+
 export function baseParse(content: string) {
   const context = createParserContext(content);
   return createRoot(parseChildren(context));
@@ -11,10 +16,38 @@ function parseChildren(context) {
   let node;
   if (context.source.startsWith('{{')) {
     node = parseInterpolation(context);
+  } else if (context.source.startsWith('<')) {
+    if (/[a-z]/.test(context.source[1])) {
+      node = parseElement(context);
+    }
   }
 
   nodes.push(node);
   return nodes;
+}
+
+function parseElement(context) {
+  const element = parseTag(context, TagType.START);
+
+  parseTag(context, TagType.END);
+
+  return element;
+}
+
+function parseTag(context, type: TagType) {
+  const match: any = /<\/?([a-z]*)/i.exec(context.source);
+  const tag = match[1];
+
+  // 删除标签
+  advanceBy(context, match[0].length);
+  advanceBy(context, 1);
+
+  if (type === TagType.END) return;
+
+  return {
+    type: NodeTypes.ELEMENT,
+    tag,
+  };
 }
 
 function parseInterpolation(context) {
