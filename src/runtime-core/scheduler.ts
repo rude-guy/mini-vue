@@ -29,4 +29,5 @@ function flushJobs() {
   while ((job = queue.shift())) {
     job();
   }
+  isFlushPending = false;
 }
