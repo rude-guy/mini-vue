@@ -373,7 +373,10 @@ export function createRenderer(options) {
       () => {
         if (!instance.isMounted) {
           const { proxy } = instance;
-          const subTree = (instance.subTree = instance.render.call(proxy));
+          const subTree = (instance.subTree = instance.render.call(
+            proxy,
+            proxy
+          ));
 
           // vnode -> patch
 
@@ -390,7 +393,7 @@ export function createRenderer(options) {
           }
           const { proxy } = instance;
 
-          const subTree = instance.render.call(proxy);
+          const subTree = instance.render.call(proxy, proxy);
           const prevTree = instance.subTree;
 
           instance.subTree = subTree;
@@ -400,7 +403,7 @@ export function createRenderer(options) {
       },
       {
         scheduler() {
-          console.log('scheduler --- update');
+          console.log('scheduler update');
           queueJob(instance.update);
         },
       }
